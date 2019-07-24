@@ -1,0 +1,276 @@
+-- Crear un Model y asociar a database
+1) crear clase que representa la entidad en nuestra database (Models)
+	namespace DatingApp.API.Models
+	Clase Value.cs
+2) Necesitamos decirle al framework que la clase se va a mapear con la base de datos
+
+3) Creamos una carpeta data y le agregamos una clase llamada DataContext
+
+	using Microsoft.EntityFrameworkCore; este namespace es el de DbContext
+	using DatingApp.API.Models;
+
+	namespace DatingApp.API.Data
+El DbContext representa la sesion en la base de datos: Si tengo una tabla Values, se usa dbcontext para para enviar el query sobre el EntityFramework para llegar a  la base
+  Constructor
+       public DataContext(DbContextOptions<DataContext> options) : base (options)
+        {}
+          
+        //<Value> es la Clase Model. DatingApp.API.Models
+        // Values, será el nombre de la tabla de la base
+        // Startup.cs crea el servicio en ConfigureServices
+         public DbSet<Value> Values { get; set; }  
+
+Startup.cs
+Se usa para crear el contexto en ConfigureServices
+using DatingApp.API.Data;
+using Microsoft.EntityFrameworkCore;
+services.AddDbContext<DataContext>(options => options.UseSqlite(connection));
+
+
+Instalar el UseSqlite
+Como le agregamos al proyeto la extension Nutget Package Manager, podemos apretar CTRL+SHIFT+P para abrir el buscador
+Tipeamos add package "ENTER", sequeda abierta esperando que paquete queres instalar.
+Tipeamos Microsoft.EntityFrameworkCore.Sqlite
+Pide version: 2.1.0
+restorear si necesita
+Incluyó el paquete en DatingApp.API.csproj    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.0"/>
+
+Levantar seteos de configuración
+appsettings.json
+
+{
+  "ConnectionStrings":{
+    "DefaultConnection": "Data Source=DatingApp.db"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+}
+
+
+En el Startup.cs tiene el instanciador
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+
+        public IConfiguration Configuration { get; }
+
+
+Para traer una configuración es : Configuration.GetConnectionString("DefaultConnection")
+
+
+Acceder a la base de datos y la explicación de migración
+
+	Para acceder a la base los hacemos a trave´z del entityframework.
+	Para eso vamos a la terminal y tipeamos  dotnet ef -h que es ayuda 
+	Migrations: Migraciones es lo que mantiene syncronized los cambios en el modelo con la base de datos sin modificar los datos.
+		    Cuando agregamos una migracion, el framework de la entidad analizará nuestra clase de contexto de datos.
+		    Va a crear y syncronizar las tablas creadas en el DataContext public DbSet
+	Tipear : dotnet ef migrations add InitialCreate
+		 Esto crea una carpeta llamada Migrations donde mantiene los archivos que ayudan a sincronizar con la base.
+		 A partir de estos archivos creamos la base.
+		 Tipeamos: dotnet ef database update
+
+Retrieve data from database
+
+Vamos al controlador ValuesController.cs
+Creamos un nuevo constructor dodnde pasamos el DbContext
+using DatingApp.API.Data;
+
+        private readonly DataContext _context;
+
+        public ValuesController(DataContext context )
+        {
+            _context = context;
+        }
+
+
+ActionResult: devuelve objectos
+IActionResult: Nos permite responder HTTP responses
+
+        public IActionResult GetValues()
+        {
+            var values = _context.Values.ToList();
+            return Ok(values); //HTTP 200 response
+
+        }
+
+
+        [HttpGet("{id}")]
+        public IActionResult GetValue(int id)
+        {
+            var value = _context.Values.FirstOrDefault(x => x.Id == id);
+            return Ok(value);
+        }
+	Si ponemos First en vez de FirstOrDefault y no lo encuentra tira una exception.
+	(x => x.Id == id) Donde x vendría la variable registro completo. x.Id : Donde el registro = id.
+
+Ahora lo probamos con postmen
+
+
+
+11. Making our doe asynchronous
+Agregar using Microsoft.EntityFrameworkCore;
+antes
+        public IActionResult GetValues()
+        {
+            var values = _context.Values.ToList();
+            return Ok(values); //HTTP 200 response
+
+        }
+despues
+        public async Task<IActionResult> GetValues()
+        {
+            var values = await _context.Values.ToListAsync();
+            return Ok(values);
+
+        }
+
+12. Creating the Angular application using angularcli
+npm install -g @angular/cli6.0.8  (Si no está instalada)
+ng new DatingApp-SPA (Crea el proyecto, tarda bastante...)
+Mi versión creó directamente el directorio .git y me preguntó por el tipo del estilo a utilizar,
+yo seleccioné el CSS
+
+13. The Angular bootstrapping and running the Angular app
+Folders Project
+e2e = End to End, for testing
+node_modules = packages que necesita el frameqork para correr
+package.json = los packetes instalados
+
+"scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "test": "ng test",
+    "lint": "ng lint",
+    "e2e": "ng e2e"
+  }
+src = web
+
+En el directorio raiz index.html tiene el tag <app-root></app-root>
+Esto está definido en app.component.ts 
+//Importo Component
+import { Component } from '@angular/core';
+
+//Defino Component
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+// Inicializo la clase
+export class AppComponent {
+  title = 'DatingApp-SPA';
+}
+app.component.html tiene el template html que va a dibujar dentro del tag <app-root></app-root>
+app.module.ts
+
+import { BrowserModule } from '@angular/platform-browser';
+//Importo Component NgModule 
+import { NgModule } from '@angular/core';
+
+import { AppRoutingModule } from './app-routing.module';
+//Importo Component AppComponent definido en app.component.ts 
+import { AppComponent } from './app.component';
+
+//Defino Component NgModule 
+@NgModule({
+  declarations: [
+    AppComponent
+  ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+main.ts (directorio raíz)
+import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+platformBrowserDynamic().bootstrapModule(AppModule)
+  .catch(err => console.error(err)); Le dice que la application es entorno web
+
+angular.json (direcvtorio raiz)
+Configuración del proyecto
+El bundle web pack definido aca es el que termina manejando la application
+
+
+14. Adding VS Code Extensions used in this course
+
+Angular Snippets by Jhon Papa make us to write code easily
+Angular Files facil para crear angular components
+Angular Languaje Service ,  permite tener la herramienta "Go to Definition"
+angular2-switcher shorcuts para cambiar de archivos dentro del componente
+Auto rename Tag, ayuda a abrir y cerrar tags correctamente. paired HTML/XML tag
+*Bracket Pair colorizer A customizable extension for colorizing matching brackets, usefull for javascripts
+Debugger for Chrome : Debug your JavaScript code in the Chrome browser, or any other target that supports the Chrome Debugger protocol.
+Material Icon Theme: Material Design Icons for Visual Studio Code
+Path Intellisense: Visual Studio Code plugin that autocompletes filenames
+Prettier - Code formatter: contiene shortcuts para formatear documentos
+TSLint support for Visual Studio Code: provide supports inside VS code
+
+
+15. Making HTTP requests in Angular
+Creamos un componente, vamos a src, app y a la carpeta seleccionamos click derecho, Generate Componente, y le damos un nombre.
+Esto hizo también que lo agregara en app.module.ts como componente
+Vamos al componente: value.component.ts
+import { HttpClientModule} from '@angular/common/http';
+Lo agregamos a Imports
+   imports: [
+      BrowserModule,
+      AppRoutingModule,
+      HttpClientModule
+   ],
+
+Ahora vamos al componente y le declaramos una variable ANY, que envuelve cualquier TIPO de objectos
+export class ValueComponent implements OnInit {
+**  values: any; **
+  
+  constructor() { }
+
+  ngOnInit() {
+  }
+}
+Al consutructor lo iniciamos con el parametros http
+constructor(private http: HttpClient) 
+Automaticamente importa
+import { HttpClient } from '@angular/common/http';
+Creo un método
+el http.get devuelve un objecto Observable, para ésto, hay que subscribirse (subscribe), el cual devuelve el response y como segundo paramentro devuelve un error en caso de tenerlo
+
+  getValues(){
+    this.http.get('http://localhost:5000/api/values').subscribe(reponse => {
+      this.values = response;
+    }, error => {
+        console.log(error);
+    });
+  }
+
+  Este evento se dispara despues de que el componente es inicializado
+  ngOnInit() {
+	this.getValues();
+  }
+
+Pongo <app-value></app-value> en app.component.ts (el que usa la página principal)
+
+Correr el dotnet watch run
+Cuando lo corres da un error de CORS
+
+16. Adding CORS support to the API
+CORS: Cross Origin Resource Sharing
+Primero añadimos AddCors as a Services en Startup.cs (API), ConfigureService Method
+services.AddCors();
+Despues en Configure agregamos  
+app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+ANTES de UseMvc(), el orden es muy importante
+
+
+
+

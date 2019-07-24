@@ -1,0 +1,37 @@
+Creando WebApi
+C:\Users\Scott>cd..
+
+C:\Users>cd\
+
+C:\>mkdir DatingApp
+
+C:\>cd DatingApp
+
+C:\DatingApp>dotnet new webapi -o DatingApp.API -n DatingApp.API
+La plantilla "ASP.NET Core Web API" se creó correctamente.
+
+Procesando acciones posteriores...
+Ejecutando "dotnet restore" en DatingApp.API\DatingApp.API.csproj...
+  Restaurando paquetes para C:\DatingApp\DatingApp.API\DatingApp.API.csproj...
+  Generación de archivo MSBuild C:\DatingApp\DatingApp.API\obj\DatingApp.API.csproj.nuget.g.props.
+  Generación de archivo MSBuild C:\DatingApp\DatingApp.API\obj\DatingApp.API.csproj.nuget.g.targets.
+  Restauración realizada en 46,18 sec para C:\DatingApp\DatingApp.API\DatingApp.API.csproj.
+
+Restauración correcta.
+
+
+C:\DatingApp>code . //Abre Visual Studio Code
+
+C:\DatingApp>
+
+--Correr el proyecto ...ejecutar en la terminal
+--C:\DatingApp\DatingApp.API dotnet run
+--probar
+--ejecutar en el navegador
+--http://localhost:5000/api/values
+
+En la terminal de Visual Code vemos el logging
+
+-- En la terminal "dotnet watch run" reiniciará el server cada vez que modifiquemos el código automáticamente (el código .NET)
+
+

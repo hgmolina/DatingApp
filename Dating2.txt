@@ -1,0 +1,43 @@
+DatingApp.API
+
+appsettings.Development.json = seteos de log y debug para que salgan en el output
+
+appsettings.json = Warning quiere decir que no se va a mostrar el mensaje en el output
+
+Properties/launchSettings.json = seteos de IIS y entornos (launch url , applicaction url , environment mode)
+
+dotnet watch run : Hace que este corriendo y cuando salvamos un cambio AUTOMATICAMENTE recompile para ver los cambios en el navegador
+
+Detalle de Error en Development Mode
+Startup.cs = 
+ 		if (env.IsDevelopment())
+            	{
+                	//If development mode, veremos el exception page con información detellada
+                	app.UseDeveloperExceptionPage();
+            	}
+		Probarlo
+		1) Terminal TAB
+		1.a)ejecutar app: dotnet run (va a decir que esta escuchando el Localhost:5000)
+		2) http://localhost:5000/api/values
+		3) Vamos a Controllers/ValuesController.cs
+			3.a) public ActionResult<IEnumerable<string>> Get()
+			3.b) Lanzamos una excepción: throw new Exception("Coco");
+			3.c) Paramos la app con CTRL + C
+			3.d) La corremos nuevamente
+			3.e) http://localhost:5000/api/values
+ 		Nos muestra detalles del error
+
+		Ahora probamos en diferente modo 
+		Properties/launchSettings.json = ASPNETCORE_ENVIRONMENT = Production
+		No muestra un zoto en el navegador, podríamos verificar la info en el Terminal de Visual Code cuando lo corremos
+
+
+
+MVC
+Startup.cs = 
+app.UseMvc() : The framework we are using , it's the middleware, que es el software que conecta el network por cada request (el cliente). Entre el pedido del cliente y el endpoit (API). Esto rootea cada request al controlador correspondiente.
+Esto sólo soporta atributos de ruteo (attribute routing). 
+Si vamos al controlador vamos a ver [Route("api/[controller]")] = localhost:port/api/controlador. Si el controlador se llama ValuesController, sacamos la palabra controller porque s una palabra resservada, con lo cual queda  localhost:port/api/values
+
+
+
